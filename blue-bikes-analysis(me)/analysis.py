@@ -18,6 +18,35 @@ def _():
 
 
 @app.cell
+def _(httpx):
+    tripdata_url = 'https://s3.amazonaws.com/hubway-data/201906-bluebikes-tripdata.zip'
+
+    tripdata_r = httpx.get(
+        url=tripdata_url,
+    )
+    tripdata_r.status_code
+    return (tripdata_r,)
+
+
+@app.cell
+def _(BytesIO, tripdata_r, zipfile):
+    czip = zipfile.ZipFile(BytesIO(tripdata_r.content))
+    return (czip,)
+
+
+@app.cell
+def _(czip):
+    list(czip.namelist())
+    return
+
+
+@app.cell
+def _(czip, pl):
+    pl.read_csv(czip.read('202506-bluebikes-tripdata.csv'))
+    return
+
+
+@app.cell
 def _(dt):
     def retrieve_urls(start_M = 1, start_Y = 2015, end_M = 5, end_Y = 2025):
         #use parameters to make date variables
@@ -64,54 +93,40 @@ def _(BytesIO, httpx, pl, zipfile):
 
 @app.cell
 def _(get_requests, retrieve_urls):
-    requests = get_requests(retrieve_urls(1, 2017, 3, 2017))
-    return (requests,)
+    def zip_dict(start_M = 1, start_Y = 2015, end_M = 5, end_Y = 2025):
+        urls = retrieve_urls(start_M, start_Y,end_M, end_Y)
+        dict = get_requests(urls)
+
+        return dict
+    return (zip_dict,)
+
+
+app._unparsable_cell(
+    r"""
+    def same_schema([])
+    """,
+    name="_"
+)
 
 
 @app.cell
-def _(requests):
-    requests
+def _(zip_dict):
+    dict = zip_dict(7, 2015, 9, 2015)
+    return (dict,)
+
+
+@app.cell
+def _(dict):
+    dict
     return
 
 
-@app.cell
-def _(retrieve_urls):
-    retrieve_urls(1, 2017, 5, 2020)
-    return
-
-
-@app.cell
-def _(httpx):
-    tripdata_url = 'https://s3.amazonaws.com/hubway-data/201906-bluebikes-tripdata.zip'
-
-    tripdata_r = httpx.get(
-        url=tripdata_url,
-    )
-    tripdata_r.status_code
-    return (tripdata_r,)
-
-
-@app.cell
-def _(BytesIO, tripdata_r, zipfile):
-    czip = zipfile.ZipFile(BytesIO(tripdata_r.content))
-    return (czip,)
-
-
-@app.cell
-def _(czip):
-    list(czip.namelist())
-    return
-
-
-@app.cell
-def _(czip, pl):
-    pl.read_csv(czip.read('202506-bluebikes-tripdata.csv'))
-    return
-
-
-@app.cell
-def _():
-    return
+app._unparsable_cell(
+    r"""
+    def knit_dfs()
+    """,
+    name="_"
+)
 
 
 if __name__ == "__main__":
